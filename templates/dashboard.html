@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OptimaOps - Monitor de Eficiência Operacional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-header">
+    <div class="container header-content">
+      <div class="brand-section">
+        <div class="brand-logo-badge">⚡</div>
+        <div class="brand-title-wrap">
+          <h1>OptimaOps</h1>
+          <div class="brand-subtitle">
+            <span class="live-indicator"></span>
+            <span>Monitor de Eficiência Operacional & Tomada de Decisão</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="openSyncModal()" title="Sincronizar dados com a planilha Google Online">
+          <span>🔄</span>
+          <span>Sincronizar Sheets</span>
+        </button>
+
+        <button class="btn btn-primary" onclick="openUploadModal()" title="Inserir novo arquivo Excel ou CSV na base de dados">
+          <span>📁</span>
+          <span>Novo Arquivo</span>
+        </button>
+
+        <button class="btn btn-accent" onclick="openSimulatorModal()" title="Simulador executivo de metas e cenários">
+          <span>💡</span>
+          <span>Simulador de Metas</span>
+        </button>
+
+        <button class="btn btn-secondary" onclick="exportReport()" title="Exportar dados do ranking em CSV">
+          <span>📄</span>
+          <span>Exportar</span>
+        </button>
+
+        <!-- User Profile Dropdown -->
+        <div class="user-profile-badge">
+          <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80" class="user-avatar-img" alt="Avatar">
+          <div class="user-info-text">
+            <div id="userName" class="user-name-label">Cristiano Sena</div>
+            <div id="userRole" class="user-role-label">Diretor de Operações</div>
+          </div>
+          <button class="logout-icon-btn" onclick="logout()" title="Encerrar Sessão">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 10px; padding-bottom: 50px;">
+
+    <!-- Filter Strip -->
+    <div class="filter-strip">
+      <div class="filter-group">
+        <div class="filter-item">
+          <span class="filter-label">Ano:</span>
+          <select id="yearSelect" class="custom-select" onchange="applyFilters()">
+            <option value="all">Todos os Anos</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <span class="filter-label">Mês:</span>
+          <select id="monthSelect" class="custom-select" onchange="applyFilters()">
+            <option value="all">Todos os Meses</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <span class="filter-label">Tema / Rubrica:</span>
+          <select id="temaSelect" class="custom-select" style="min-width: 220px;" onchange="applyFilters()">
+            <option value="all">Todas as Rubricas</option>
+          </select>
+        </div>
+
+        <button class="btn btn-secondary btn-sm" onclick="resetFilters()">Limpar Filtros</button>
+      </div>
+
+      <div class="sync-status-badge">
+        <span class="live-indicator"></span>
+        <span id="dataStatusText">Base Conectada: 60.728 Registros</span>
+      </div>
+    </div>
+
+    <!-- Executive KPI Row -->
+    <div class="kpi-grid">
+      <!-- Total Empenhado -->
+      <div class="kpi-card blue">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Empenhado</span>
+          <div class="kpi-icon-wrap" style="color: #60a5fa;">💰</div>
+        </div>
+        <div class="kpi-value" id="kpiEmpenhado">R$ 0,00</div>
+        <div class="kpi-footer">
+          <span>Orçamento Planejado</span>
+          <span id="kpiTransacoesCount">0 transações</span>
+        </div>
+      </div>
+
+      <!-- Total Liquidado -->
+      <div class="kpi-card purple">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Liquidado</span>
+          <div class="kpi-icon-wrap" style="color: #a78bfa;">📦</div>
+        </div>
+        <div class="kpi-value" id="kpiLiquidado">R$ 0,00</div>
+        <div class="kpi-progress-bar">
+          <div id="kpiLiqProgress" class="kpi-progress-fill" style="width: 0%; background: #a78bfa;"></div>
+        </div>
+        <div class="kpi-footer">
+          <span>Taxa de Liquidação</span>
+          <span id="kpiTaxaLiq" style="font-weight: 700; color: #a78bfa;">0%</span>
+        </div>
+      </div>
+
+      <!-- Total Pago -->
+      <div class="kpi-card emerald">
+        <div class="kpi-header">
+          <span class="kpi-title">Total Pago (Executado)</span>
+          <div class="kpi-icon-wrap" style="color: #34d399;">💳</div>
+        </div>
+        <div class="kpi-value" id="kpiPago">R$ 0,00</div>
+        <div class="kpi-progress-bar">
+          <div id="kpiExecProgress" class="kpi-progress-fill" style="width: 0%; background: #34d399;"></div>
+        </div>
+        <div class="kpi-footer">
+          <span>Taxa de Execução Financeira</span>
+          <span id="kpiTaxaExec" style="font-weight: 700; color: #34d399;">0%</span>
+        </div>
+      </div>
+
+      <!-- SLA Médio Operacional -->
+      <div class="kpi-card amber">
+        <div class="kpi-header">
+          <span class="kpi-title">SLA Médio de Pagamento</span>
+          <div class="kpi-icon-wrap" style="color: #fbbf24;">⏱️</div>
+        </div>
+        <div class="kpi-value" id="kpiSLA">0,0 dias</div>
+        <div class="kpi-footer">
+          <span>Meta: ≤ 15 dias</span>
+          <span id="kpiSLACompliance" style="font-weight: 700;">0% em conformidade</span>
+        </div>
+      </div>
+
+      <!-- IGEO (Índice Global de Eficiência) -->
+      <div class="kpi-card blue" style="background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(17,24,39,0.9));">
+        <div class="kpi-header">
+          <span class="kpi-title">Score IGEO</span>
+          <div class="kpi-icon-wrap" style="color: #60a5fa;">🎯</div>
+        </div>
+        <div class="kpi-value" id="kpiIGEO" style="color: #60a5fa;">0,0 / 100</div>
+        <div class="kpi-footer">
+          <span>Eficiência Global</span>
+          <span id="kpiIGEOStatus" class="status-badge emerald" style="padding: 2px 8px; font-size: 10px;">Excelente</span>
+        </div>
+      </div>
+
+      <!-- Gargalos / Anomalias -->
+      <div class="kpi-card rose">
+        <div class="kpi-header">
+          <span class="kpi-title">Gargalos Críticos</span>
+          <div class="kpi-icon-wrap" style="color: #fb7185;">⚠️</div>
+        </div>
+        <div class="kpi-value" id="kpiAnomalias" style="color: #fb7185;">0</div>
+        <div class="kpi-footer">
+          <span>Desvios SLA &gt; 30 dias</span>
+          <span style="color: #fb7185; font-weight: 700;">Atenção Imediata</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strategic Decision Banner -->
+    <div class="decision-banner">
+      <div class="decision-header">
+        <div class="decision-headline">
+          <span style="font-size: 22px;">💡</span>
+          <div>
+            <h2>Central de Inteligência & Tomada de Decisão</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+              Transformando dados orçamentários em insights acionáveis para otimização de recursos e conformidade.
+            </p>
+          </div>
+        </div>
+        <span class="decision-badge-pill">Decision Intelligence Ativa</span>
+      </div>
+
+      <div id="decisionCardsGrid" class="decision-cards-grid">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+      <!-- Chart 1: Time Evolution -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h3>Evolução Orçamentária & SLA Operacional</h3>
+            <p>Comparativo cronológico de Empenho, Liquidação, Pagamento e Lead Time</p>
+          </div>
+          <span class="sync-status-badge">Mensal</span>
+        </div>
+        <div class="chart-container-box">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Pareto Thematic -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title-wrap">
+            <h3>Curva de Pareto de Despesas (Curva ABC)</h3>
+            <p>Concentração acumulada de gastos por categoria operacional</p>
+          </div>
+          <span class="sync-status-badge">Top 10 Rubricas</span>
+        </div>
+        <div class="chart-container-box">
+          <canvas id="paretoChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Credor Performance Rankings -->
+    <div class="rankings-section">
+      <div class="rankings-header">
+        <div>
+          <h2 style="font-size: 17px; font-weight: 700; color: white;">Ranking de Desempenho Operacional de Fornecedores / Credores</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            Classificação multidimensional considerando pontualidade de pagamento, consistência de ateste e volume executado
+          </p>
+        </div>
+
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="rankingSearchInput" class="search-input" placeholder="Buscar por credor ou empresa..." oninput="filterRankingTable()">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Rank</th>
+              <th>Credor / Fornecedor</th>
+              <th>Volume Executado (R$)</th>
+              <th style="width: 170px;">SLA Médio (Dias)</th>
+              <th style="width: 120px;">Score Operacional</th>
+              <th style="width: 110px;">Status</th>
+              <th style="text-align: right; width: 100px;">Ação</th>
+            </tr>
+          </thead>
+          <tbody id="rankingTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Deviations & Critical Bottlenecks Section -->
+    <div style="margin-bottom: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 17px; font-weight: 700; color: white;">Identificação de Desvios & Gargalos de Processo</h2>
+          <p style="font-size: 12px; color: var(--text-muted);">Anomalias de prazo, risco de perda orçamentária e concentração excessiva de fornecedores</p>
+        </div>
+        <span class="sync-status-badge" style="color: #fb7185; border-color: rgba(244,63,94,0.3);">Auditoria em Tempo Real</span>
+      </div>
+
+      <div id="deviationsGrid" class="deviations-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- MODAL 1: Upload de Novo Arquivo -->
+  <div id="uploadModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📁 Inserir Novo Arquivo na Base de Dados</h3>
+        <button class="modal-close-btn" onclick="closeUploadModal()">&times;</button>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+        Ao fazer o upload de um arquivo Excel (.xlsx, .xls) ou CSV, o pipeline de dados em Python/Pandas processará automaticamente as informações, atualizando os indicadores, gráficos e ranking em tempo real.
+      </p>
+
+      <div id="dropzoneBox" class="dropzone-box" onclick="document.getElementById('fileUploadInput').click()">
+        <div class="dropzone-icon">☁️</div>
+        <div class="dropzone-text">
+          <h4>Arraste e solte o arquivo aqui</h4>
+          <p>ou clique para selecionar do computador (.xlsx, .xls, .csv)</p>
+        </div>
+        <input type="file" id="fileUploadInput" accept=".xlsx,.xls,.csv" style="display: none;" onchange="handleFileSelect(event)">
+      </div>
+
+      <div id="uploadProgressBox" style="display: none; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #cbd5e1; margin-bottom: 6px;">
+          <span id="uploadFileName">arquivo.xlsx</span>
+          <span id="uploadStatusText">Processando...</span>
+        </div>
+        <div class="kpi-progress-bar">
+          <div id="uploadProgressBar" class="kpi-progress-fill" style="width: 100%; background: #3b82f6;"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" onclick="closeUploadModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Sincronização Google Sheets -->
+  <div id="syncModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔄 Sincronizar com Planilha Google Online</h3>
+        <button class="modal-close-btn" onclick="closeSyncModal()">&times;</button>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+        A planilha oficial conectada é atualizada diariamente. Disparar a sincronização fará o download instantâneo dos dados mais recentes, reprocessando as metas e indicadores.
+      </p>
+
+      <div style="background: rgba(17,24,39,0.7); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 20px; font-size: 12px; color: #94a3b8; word-break: break-all;">
+        <strong style="color: white; display: block; margin-bottom: 4px;">Link Conectado:</strong>
+        https://docs.google.com/spreadsheets/d/1uQcCEjud5tnj9vpbRzYJq-J89GMgl_3-YwoCHaurnmU
+      </div>
+
+      <div id="syncStatusFeedback" style="font-size: 13px; color: #34d399; margin-bottom: 16px; display: none;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" onclick="closeSyncModal()">Fechar</button>
+        <button id="btnTriggerSync" class="btn btn-primary" onclick="triggerGoogleSync()">
+          <span>Iniciar Sincronização</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Simulador Executivo de Metas (What-If Engine) -->
+  <div id="simulatorModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 640px;">
+      <div class="modal-header">
+        <h3>💡 Simulador Executivo de Metas & Cenários</h3>
+        <button class="modal-close-btn" onclick="closeSimulatorModal()">&times;</button>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+        Ajuste as metas de otimização operacional e veja a projeção imediata de economia financeira e ganho no tempo de ciclo para apoio à decisão.
+      </p>
+
+      <div class="slider-group">
+        <div class="slider-label-row">
+          <span>Meta de Otimização Orçamentária / Redução de Custos:</span>
+          <span id="sliderCostLabel">3.0%</span>
+        </div>
+        <input type="range" id="sliderCost" class="range-slider" min="0" max="10" step="0.5" value="3.0" oninput="runScenarioSimulation()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-label-row">
+          <span>Meta de Redução de SLA / Aceleração de Processos:</span>
+          <span id="sliderSlaLabel">15.0%</span>
+        </div>
+        <input type="range" id="sliderSla" class="range-slider" min="0" max="40" step="2.5" value="15.0" oninput="runScenarioSimulation()">
+      </div>
+
+      <!-- Simulation Results Card -->
+      <div style="background: rgba(17,24,39,0.85); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-top: 14px;">
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.05em; margin-bottom: 12px;">
+          Impacto Projetado do Cenário
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Economia Financeira Projetada:</div>
+            <div id="simSavings" style="font-size: 20px; font-weight: 700; color: #34d399;">R$ 0,00</div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Tempo Poupado no Ciclo:</div>
+            <div id="simDaysSaved" style="font-size: 20px; font-weight: 700; color: #60a5fa;">0,0 dias</div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Novo SLA Médio Projetado:</div>
+            <div id="simNewSLA" style="font-size: 16px; font-weight: 600; color: white;">0,0 dias</div>
+          </div>
+
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Ganho no Índice IGEO:</div>
+            <div id="simIgeoGain" style="font-size: 16px; font-weight: 600; color: #a78bfa;">+0,0 pontos</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="closeSimulatorModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Detalhes do Credor -->
+  <div id="credorModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="credorModalName">Detalhes do Credor</h3>
+        <button class="modal-close-btn" onclick="closeCredorModal()">&times;</button>
+      </div>
+      <div id="credorModalBody">
+        <!-- Rendered dynamically -->
+      </div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="closeCredorModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Main JavaScript Controller -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

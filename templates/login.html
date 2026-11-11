@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - OptimaOps | Monitor de Eficiência Operacional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .login-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(17, 24, 39, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 38px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(37, 99, 235, 0.15);
+      position: relative;
+    }
+
+    .login-brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .login-brand-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 0 25px rgba(37, 99, 235, 0.5);
+    }
+
+    .login-brand h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+
+    .login-brand p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #141c2c;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 14px;
+      color: white;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: #172236;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 8px;
+      justify-content: center;
+    }
+
+    /* Demo Access Section */
+    .demo-access-panel {
+      margin-top: 26px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .demo-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .demo-title::before, .demo-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .demo-user-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      background: rgba(22, 32, 50, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .demo-user-card:hover {
+      background: rgba(37, 99, 235, 0.15);
+      border-color: var(--primary);
+      transform: translateX(3px);
+    }
+
+    .demo-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .demo-info {
+      flex: 1;
+      text-align: left;
+    }
+
+    .demo-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .demo-role {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .demo-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      background: #1e293b;
+      color: #94a3b8;
+    }
+
+    .error-msg {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+      font-size: 12px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      display: none;
+      text-align: center;
+    }
+
+    .feature-tag-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .feature-tag-row span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-box">
+      <div class="login-brand">
+        <div class="login-brand-icon">⚡</div>
+        <h1>OptimaOps</h1>
+        <p>Monitor de Eficiência Operacional & Tomada de Decisão</p>
+      </div>
+
+      <div id="errorBox" class="error-msg"></div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Usuário / E-mail</label>
+          <input type="email" id="usernameInput" class="input-field" placeholder="ex: admin@operacoes.gov.br" required value="admin@operacoes.gov.br">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input type="password" id="passwordInput" class="input-field" placeholder="Digite sua senha" required value="admin123">
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-login">
+          <span>Acessar Painel Executivo</span>
+          <span>→</span>
+        </button>
+      </form>
+
+      <!-- Fast Click Demo Accounts -->
+      <div class="demo-access-panel">
+        <div class="demo-title">Contas Demonstrativas (1 Clique para Entrar)</div>
+        
+        <div class="demo-user-card" onclick="fillAndLogin('admin@operacoes.gov.br', 'admin123')">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80" class="demo-avatar" alt="Admin">
+          <div class="demo-info">
+            <div class="demo-name">Cristiano Sena</div>
+            <div class="demo-role">Diretor de Operações e Estratégia</div>
+          </div>
+          <span class="demo-pill" style="color: #34d399; background: rgba(16,185,129,0.15)">Admin</span>
+        </div>
+
+        <div class="demo-user-card" onclick="fillAndLogin('gestor@operacoes.gov.br', 'gestor123')">
+          <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=80" class="demo-avatar" alt="Gestor">
+          <div class="demo-info">
+            <div class="demo-name">Mariana Albuquerque</div>
+            <div class="demo-role">Gestora de Eficiência Operacional</div>
+          </div>
+          <span class="demo-pill" style="color: #60a5fa; background: rgba(59,130,246,0.15)">Gestor</span>
+        </div>
+
+        <div class="demo-user-card" onclick="fillAndLogin('analista@operacoes.gov.br', 'analista123')">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80" class="demo-avatar" alt="Analista">
+          <div class="demo-info">
+            <div class="demo-name">Lucas Vasconcelos</div>
+            <div class="demo-role">Analista de Processos & Dados</div>
+          </div>
+          <span class="demo-pill" style="color: #cbd5e1; background: #334155">Analista</span>
+        </div>
+      </div>
+
+      <div class="feature-tag-row">
+        <span>🔒 Autenticação JWT</span>
+        <span>⚡ FastAPI 2.0</span>
+        <span>📊 60.700+ Registros</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Redirect if already authenticated
+    const existingToken = localStorage.getItem("optima_token");
+    if (existingToken) {
+      window.location.href = "/dashboard";
+    }
+
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const username = document.getElementById("usernameInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+      const errorBox = document.getElementById("errorBox");
+      const submitBtn = document.getElementById("submitBtn");
+
+      errorBox.style.display = "none";
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = "<span>Autenticando...</span>";
+
+      try {
+        const resp = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+          localStorage.setItem("optima_token", data.token);
+          localStorage.setItem("optima_user", JSON.stringify(data.user));
+          window.location.href = "/dashboard";
+        } else {
+          errorBox.textContent = data.detail || "Falha na autenticação. Verifique os dados.";
+          errorBox.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "<span>Acessar Painel Executivo</span><span>→</span>";
+        }
+      } catch (err) {
+        errorBox.textContent = "Erro de conexão com o servidor da API.";
+        errorBox.style.display = "block";
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "<span>Acessar Painel Executivo</span><span>→</span>";
+      }
+    }
+
+    function fillAndLogin(u, p) {
+      document.getElementById("usernameInput").value = u;
+      document.getElementById("passwordInput").value = p;
+      handleLogin(null);
+    }
+  </script>
+</body>
+</html>
